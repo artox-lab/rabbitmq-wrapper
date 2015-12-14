@@ -23,4 +23,12 @@
             </exclude>
         </whitelist>
     </filter>
+    <php>
+        <const name="TEST_HOST" value="localhost"/>
+        <const name="TEST_PORT" value="5672"/>
+        <const name="TEST_USERNAME" value="guest"/>
+        <const name="TEST_PASSWORD" value="guest"/>
+        <const name="TEST_QUEUE_TITLE" value="test_rabbit_mq_queue"/>
+        <const name="TEST_QUEUE_MESSAGE" value="test"/>
+    </php>
 </phpunit>

@@ -1,21 +1,20 @@
 <?php
 
+defined('TEST_HOST') or define('TEST_HOST', 'localhost');
+defined('TEST_PORT') or define('TEST_PORT', 5672);
+defined('TEST_USERNAME') or define('TEST_USERNAME', 'guest');
+defined('TEST_PASSWORD') or define('TEST_PASSWORD', 'guest');
+defined('TEST_QUEUE_TITLE') or define('TEST_QUEUE_TITLE', 'test_rabbit_mq_queue');
+defined('TEST_QUEUE_MESSAGE') or define('TEST_QUEUE_MESSAGE', 'test');
+
 class RabbitMQTest extends PHPUnit_Framework_TestCase
 {
-    const HOST = 'localhost';
-    const PORT = 5672;
-    const USERNAME = 'guest';
-    const PASSWORD = 'guest';
-
-    const QUEUE_TITLE = 'test_rabbit_mq_queue';
-    const QUEUE_MESSAGE = 'test';
-
     public function testPublishAndGetQueueMessage()
     {
-        $rabbitMQ = new \RabbitMQWrapper\RabbitMQ(self::HOST, self::PORT, self::USERNAME, self::PASSWORD);
-        $rabbitMQ->createQueue(self::QUEUE_TITLE);
-        $rabbitMQ->publishMessage(self::QUEUE_MESSAGE, self::QUEUE_TITLE);
+        $rabbitMQ = new \RabbitMQWrapper\RabbitMQ(TEST_HOST, TEST_PORT, TEST_USERNAME, TEST_PASSWORD);
+        $rabbitMQ->createQueue(TEST_QUEUE_TITLE);
+        $rabbitMQ->publishMessage(TEST_QUEUE_MESSAGE, TEST_QUEUE_TITLE);
 
-        $this->assertEquals(self::QUEUE_MESSAGE, $rabbitMQ->getMessage(self::QUEUE_TITLE));
+        $this->assertEquals(TEST_QUEUE_MESSAGE, $rabbitMQ->getMessage(TEST_QUEUE_TITLE));
     }
 }
