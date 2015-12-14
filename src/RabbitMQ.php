@@ -37,7 +37,7 @@ class RabbitMQ
      * @param string $username
      * @param string $password
      */
-    public function __construct($host = 'localhost', $port = 5672, $username = '', $password = '')
+    public function __construct($host = 'localhost', $port = 5672, $username = 'guest', $password = 'guest')
     {
         $this->host = $host;
         $this->port = $port;
@@ -137,6 +137,15 @@ class RabbitMQ
         {
             $this->channel->wait();
         }
+    }
+
+    /**
+     * @param $queueTitle
+     * @return mixed
+     */
+    public function getMessage($queueTitle)
+    {
+        return $this->channel->basic_get($queueTitle);
     }
 
     public function close()

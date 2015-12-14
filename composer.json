@@ -8,12 +8,13 @@
   "authors": [
     {
       "name": "Artox-Lab",
-      "email": "e.voronets.dom.by"
+      "email": "e.voronets@dom.by"
     }
   ],
   "require": {
     "php": ">=5.5.0",
-    "videlalvaro/php-amqplib": "^2.6"
+    "videlalvaro/php-amqplib": "^2.6",
+    "phpunit/phpunit": "4.*"
   },
   "require-dev": {
     "phpunit/phpunit": "4.*"
