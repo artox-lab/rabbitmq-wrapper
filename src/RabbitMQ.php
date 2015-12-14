@@ -145,7 +145,7 @@ class RabbitMQ
      */
     public function getMessage($queueTitle)
     {
-        return $this->channel->basic_get($queueTitle);
+        return $this->channel->basic_get($queueTitle)->body;
     }
 
     public function close()

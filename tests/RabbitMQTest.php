@@ -16,6 +16,6 @@ class RabbitMQTest extends PHPUnit_Framework_TestCase
         $rabbitMQ->createQueue(self::QUEUE_TITLE);
         $rabbitMQ->publishMessage(self::QUEUE_MESSAGE, self::QUEUE_TITLE);
 
-        $this->assertEquals(self::QUEUE_MESSAGE, $rabbitMQ->getMessage(self::QUEUE_TITLE)->body);
+        $this->assertEquals(self::QUEUE_MESSAGE, $rabbitMQ->getMessage(self::QUEUE_TITLE));
     }
 }
