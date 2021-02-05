@@ -2,116 +2,182 @@
 
 namespace RabbitMQWrapper;
 
-use PhpAmqpLib\Connection\AMQPConnection;
 use PhpAmqpLib\Channel\AMQPChannel;
+use PhpAmqpLib\Connection\AMQPConnection;
 use PhpAmqpLib\Message\AMQPMessage;
-use Exception;
+use RuntimeException;
 
 /**
  * Class RabbitMQ
+ *
  * @package RabbitMQWrapper
  */
 class RabbitMQ
 {
-    #region Fields
+
     /**
+     * AMQP connection
+     *
      * @var AMQPConnection
      */
     private $connection = null;
 
     /**
+     * AMQP channel
+     *
      * @var AMQPChannel
      */
     private $channel = null;
 
-    public $host;
-    public $port;
-    public $username;
-    public $password;
-    #endregion
+    /**
+     * RabbitMQ host
+     *
+     * @var string
+     */
+    private $host;
+
+    /**
+     * RabbitMQ port
+     *
+     * @var integer
+     */
+    private $port;
+
+    /**
+     * RabbitMQ username
+     *
+     * @var string
+     */
+    private $username;
+
+    /**
+     * RabbitMQ password
+     *
+     * @var string
+     */
+    private $password;
+
+    /**
+     * RabbitMQ vhost
+     *
+     * @var string
+     */
+    private $vhost;
 
     /**
      * RabbitMQ constructor.
-     * @param string $host
-     * @param integer $port
-     * @param string $username
-     * @param string $password
+     *
+     * @param string  $host     RabbitMQ host
+     * @param integer $port     RabbitMQ port
+     * @param string  $username RabbitMQ username
+     * @param string  $password RabbitMQ password
+     * @param string  $vhost    RabbitMQ vhost
+     *
+     * @throws RuntimeException
      */
-    public function __construct($host = 'localhost', $port = 5672, $username = 'guest', $password = 'guest')
-    {
-        $this->host = $host;
-        $this->port = $port;
+    public function __construct(
+        $host = 'localhost',
+        $port = 5672,
+        $username = 'guest',
+        $password = 'guest',
+        $vhost = '/'
+    ) {
+        $this->host     = $host;
+        $this->port     = $port;
         $this->username = $username;
         $this->password = $password;
+        $this->vhost    = $vhost;
 
         $this->getChannel();
     }
 
-    #region Private Methods
     /**
+     * Connection
+     *
+     * @throws RuntimeException
+     *
      * @return AMQPConnection
-     * @throws Exception
      */
     private function getConnection()
     {
-        if ($this->connection === null)
-        {
-            $this->connection = new AMQPConnection($this->host, $this->port, $this->username, $this->password);
+        if ($this->connection === null) {
+            $this->connection = new AMQPConnection(
+                $this->host,
+                $this->port,
+                $this->username,
+                $this->password,
+                $this->vhost
+            );
         }
 
-        if (empty($this->connection))
-        {
-            throw new Exception("Couldn't connect to RabbitMQ server");
+        if (empty($this->connection)) {
+            throw new RuntimeException("Couldn't connect to RabbitMQ server");
         }
 
         return $this->connection;
     }
 
     /**
+     * Channel
+     *
+     * @throws RuntimeException
+     *
      * @return AMQPChannel
-     * @throws Exception
      */
     private function getChannel()
     {
-        if ($this->channel === null)
-        {
+        if ($this->channel === null) {
             $this->channel = $this->getConnection()->channel();
         }
 
         return $this->channel;
     }
-    #endregion
 
-    #region Public Methods
     /**
-     * @param string $title
-     * @param boolean $durable
-     * @param boolean $autoDelete
-     * @param array $arguments
-     * @throws Exception
+     * Create queue
+     *
+     * @param string  $title      Queue name
+     * @param boolean $durable    Durable
+     * @param boolean $autoDelete Delete queue automatically
+     * @param array   $arguments  Arguments
+     *
+     * @throws RuntimeException
+     *
+     * @return void
      */
     public function createQueue($title, $durable = false, $autoDelete = false, $arguments = null)
     {
-        if (!$this->channel)
-        {
-            throw new Exception("Channel didn't created");
+        if (!$this->channel) {
+            throw new RuntimeException("Channel didn't created");
         }
 
-        $this->channel->queue_declare($title, false, $durable, false, $autoDelete, false, $arguments);
+        $this->channel->queue_declare(
+            $title,
+            false,
+            $durable,
+            false,
+            $autoDelete,
+            false,
+            $arguments
+        );
         $this->channel->basic_qos(null, 1, null);
     }
 
     /**
-     * @param string $message
-     * @param string $queueTitle
-     * @param string $exchange
-     * @throws Exception
+     * Publish message
+     *
+     * @param string $message    Message
+     * @param string $queueTitle Queue name
+     * @param string $exchange   Exchange name
+     *
+     * @throws RuntimeException
+     *
+     * @return void
      */
     public function publishMessage($message, $queueTitle, $exchange = '')
     {
-        if (!$this->channel)
-        {
-            throw new Exception("Channel didn't created");
+        if (!$this->channel) {
+            throw new RuntimeException("Channel didn't created");
         }
 
         $msg = new AMQPMessage($message);
@@ -119,16 +185,19 @@ class RabbitMQ
     }
 
     /**
-     * @param string $queueTitle
-     * @param callable $callback
-     * @param string $exchange
-     * @throws Exception
+     * Listening messages from queue
+     *
+     * @param string   $queueTitle Queue name
+     * @param callable $callback   Callback
+     * @param string   $exchange   Exchange name
+     * @param bool     $noAck      Asc don't needed?
+     *
+     * @return void
      */
     public function startListening($queueTitle, $callback, $exchange = '', $noAck = false)
     {
-        if (!$this->channel)
-        {
-            throw new Exception("Channel didn't created");
+        if (!$this->channel) {
+            throw new RuntimeException("Channel didn't created");
         }
 
         $this->channel->basic_consume($queueTitle, $exchange, false, $noAck, false, false, $callback);
@@ -140,7 +209,10 @@ class RabbitMQ
     }
 
     /**
-     * @param $queueTitle
+     * Getting last message from queue
+     *
+     * @param string $queueTitle Queue name
+     *
      * @return mixed
      */
     public function getMessage($queueTitle)
@@ -148,22 +220,25 @@ class RabbitMQ
         return $this->channel->basic_get($queueTitle)->body;
     }
 
+    /**
+     * Close connection
+     *
+     * @return void
+     */
     public function close()
     {
-        if ($this->channel != null)
-        {
+        if ($this->channel !== null) {
             $this->channel->close();
         }
 
-        if ($this->connection != null)
-        {
+        if ($this->connection !== null) {
             $this->connection->close();
         }
     }
-    #endregion
 
-    function __destruct()
+    public function __destruct()
     {
         $this->close();
     }
+
 }
